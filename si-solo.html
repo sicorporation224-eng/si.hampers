@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>si.Solo — Catatan Belanja & Penjualan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-dark:#241708;
+    --cream:#FFF8ED;
+    --cream-dim:#e8dcc6;
+    --solo:#C97B2E;
+    --solo-dark:#8A5219;
+    --gold:#FFC93C;
+    --green:#6BCB3F;
+    --red:#E8543E;
+    --panel:#FFF8ED;
+    --panel-ink:#2c1c0c;
+    --line:#e6d5b3;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 10% -5%, rgba(255,201,60,0.16), transparent 40%),
+      radial-gradient(circle at 95% 10%, rgba(201,123,46,0.22), transparent 42%),
+      var(--bg-dark);
+    color:var(--cream);
+    font-family:'Nunito', sans-serif;
+    min-height:100vh;
+  }
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 5vw;
+    background:rgba(36,23,8,0.9);
+    backdrop-filter:blur(8px);
+    border-bottom:3px solid var(--gold);
+  }
+  .back{color:var(--cream-dim); text-decoration:none; font-weight:700; font-size:0.85rem;}
+  .back:hover{color:var(--gold);}
+  .brand{
+    display:flex; align-items:center; gap:10px;
+    font-family:'Baloo 2', sans-serif; font-weight:800; font-size:1.15rem;
+  }
+  .brand .icon{
+    width:36px; height:36px; border-radius:11px; background:linear-gradient(135deg,var(--solo),var(--solo-dark));
+    display:flex; align-items:center; justify-content:center; font-size:1.2rem;
+  }
+
+  .wrap{max-width:980px; margin:0 auto; padding:32px 5vw 70px;}
+
+  .tabs{display:flex; gap:10px; margin-bottom:24px; flex-wrap:wrap;}
+  .tab-btn{
+    font-family:'Baloo 2',sans-serif; font-weight:700; font-size:0.95rem;
+    padding:12px 22px; border-radius:14px; border:2px solid var(--line);
+    background:transparent; color:var(--cream-dim); cursor:pointer;
+    transition:all .15s ease;
+  }
+  .tab-btn.active{background:var(--solo); border-color:var(--solo); color:var(--cream);}
+
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .card{
+    background:var(--panel); color:var(--panel-ink); border-radius:20px;
+    padding:24px; margin-bottom:22px; box-shadow:0 10px 0 rgba(0,0,0,0.22);
+  }
+  .card h3{font-family:'Baloo 2',sans-serif; font-size:1.15rem; margin-bottom:14px;}
+  .row{display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;}
+  .field{display:flex; flex-direction:column; gap:6px; flex:1; min-width:130px;}
+  .field label{font-size:0.75rem; font-weight:800; color:#6b5636; letter-spacing:0.5px; text-transform:uppercase;}
+  .field input{
+    padding:11px 13px; border-radius:11px; border:2px solid var(--line);
+    font-family:'Nunito',sans-serif; font-weight:700; font-size:0.92rem; color:var(--panel-ink);
+    background:#fffdf7;
+  }
+  .field input:focus{outline:none; border-color:var(--solo);}
+  .btn{
+    font-family:'Nunito',sans-serif; font-weight:800; font-size:0.9rem;
+    padding:11px 20px; border-radius:12px; border:none; cursor:pointer;
+    transition:transform .12s ease;
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn-add{background:var(--solo); color:var(--cream);}
+  .btn-add:hover{background:var(--solo-dark);}
+  .btn-outline{background:transparent; border:2px solid var(--solo); color:var(--solo-dark);}
+  .btn-danger{background:var(--red); color:var(--cream); padding:6px 12px; font-size:0.78rem; border-radius:9px;}
+  .btn-small{padding:6px 14px; font-size:0.78rem; border-radius:9px;}
+
+  table{width:100%; border-collapse:collapse; margin-top:14px; font-size:0.9rem;}
+  th{
+    text-align:left; padding:10px 8px; font-family:'Baloo 2',sans-serif;
+    font-size:0.78rem; text-transform:uppercase; letter-spacing:0.5px; color:#6b5636;
+    border-bottom:2px solid var(--line);
+  }
+  td{padding:10px 8px; border-bottom:1px solid var(--line); font-weight:600;}
+  .empty-row td{text-align:center; color:#a3906d; font-style:italic; padding:22px;}
+
+  .recap-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px;}
+  .recap-item{
+    background:#fbf1de; border-radius:14px; padding:16px; text-align:center;
+    border:1.5px solid var(--line);
+  }
+  .recap-item .n{font-family:'Baloo 2',sans-serif; font-weight:800; font-size:1.4rem; color:var(--solo-dark);}
+  .recap-item .l{font-size:0.72rem; font-weight:700; color:#6b5636; margin-top:4px; text-transform:uppercase; letter-spacing:0.5px;}
+
+  .price-info{
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
+    background:#fbf1de; border-radius:14px; padding:14px 18px; margin-bottom:18px; border:1.5px solid var(--line);
+  }
+  .price-info span{font-weight:700; font-size:0.9rem;}
+  .price-info strong{color:var(--solo-dark);}
+
+  .varian-row{display:flex; gap:10px; margin-bottom:10px; align-items:center;}
+  .varian-row input{flex:1;}
+  .varian-row .qty{max-width:90px;}
+
+  .total-line{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top:16px; padding-top:14px; border-top:2px dashed var(--line);
+    font-family:'Baloo 2',sans-serif; font-weight:800; font-size:1.15rem; color:var(--solo-dark);
+  }
+
+  .foot-total{
+    text-align:center; margin-top:30px; padding:24px; border-radius:20px;
+    background:linear-gradient(135deg,var(--solo),var(--solo-dark)); color:var(--cream);
+  }
+  .foot-total .n{font-family:'Baloo 2',sans-serif; font-weight:800; font-size:2rem;}
+  .foot-total .l{font-size:0.8rem; opacity:0.85; letter-spacing:1px; text-transform:uppercase;}
+
+  @media (max-width:600px){
+    table{font-size:0.78rem;}
+    th,td{padding:7px 5px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="dashboard-sicorporation224.html">← sicorporation_224</a>
+  <div class="brand"><div class="icon">🏮</div>si.Solo</div>
+  <span></span>
+</div>
+
+<div class="wrap">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('belanja')">🛒 Daftar Belanja</button>
+    <button class="tab-btn" onclick="switchTab('penjualan')">🧾 Daftar Penjualan</button>
+  </div>
+
+  <!-- ============ BELANJA ============ -->
+  <div class="panel active" id="panel-belanja">
+    <div class="card">
+      <div class="row">
+        <div class="field">
+          <label>Tanggal Belanja</label>
+          <input type="date" id="tglBelanja">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Tambah Bahan</h3>
+      <div class="row">
+        <div class="field">
+          <label>Nama Bahan</label>
+          <input type="text" id="namaBahan" placeholder="cth: Tepung Beras">
+        </div>
+        <div class="field">
+          <label>Harga</label>
+          <input type="number" id="hargaBahan" placeholder="0">
+        </div>
+        <div class="field" style="max-width:110px;">
+          <label>Jumlah</label>
+          <input type="number" id="jumlahBahan" placeholder="0">
+        </div>
+        <button class="btn btn-add" onclick="tambahBahan()">+ Tambah</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Rincian Belanja</h3>
+      <table>
+        <thead><tr><th>Bahan</th><th>Harga</th><th>Jumlah</th><th>Subtotal</th><th></th></tr></thead>
+        <tbody id="tabelBahan">
+          <tr class="empty-row"><td colspan="5">Belum ada bahan yang dicatat.</td></tr>
+        </tbody>
+      </table>
+      <button class="btn btn-outline" style="margin-top:16px;" onclick="unduhBelanja()">⬇ Unduh CSV</button>
+    </div>
+
+    <div class="card">
+      <h3>Rekap Belanja</h3>
+      <div class="recap-grid">
+        <div class="recap-item"><div class="n" id="rJumlahBahan">0</div><div class="l">Jumlah Bahan</div></div>
+        <div class="recap-item"><div class="n" id="rTotalUnit">0</div><div class="l">Total Unit Dibeli</div></div>
+        <div class="recap-item"><div class="n" id="rTotalBelanja">Rp 0</div><div class="l">Total Belanja</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PENJUALAN ============ -->
+  <div class="panel" id="panel-penjualan">
+    <div class="card">
+      <div class="row">
+        <div class="field">
+          <label>Tanggal Penjualan</label>
+          <input type="date" id="tglJual">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="price-info">
+        <span>Harga Serabi Solo: <strong id="hargaLabel">Rp 5.000</strong> / pcs · berlaku untuk semua varian rasa</span>
+        <button class="btn btn-outline btn-small" onclick="ubahHarga()">Ubah Harga</button>
+      </div>
+
+      <h3>Catat Pesanan</h3>
+      <div class="field" style="margin-bottom:14px;">
+        <label>Nama Pembeli</label>
+        <input type="text" id="namaPembeli" placeholder="cth: Bu Sinta">
+      </div>
+
+      <label style="font-size:0.75rem; font-weight:800; color:#6b5636; letter-spacing:0.5px; text-transform:uppercase;">Varian &amp; Jumlah</label>
+      <div id="varianList" style="margin-top:8px;">
+        <div class="varian-row">
+          <input type="text" placeholder="Varian (cth: Original)" class="varianNama">
+          <input type="number" placeholder="Qty" class="qty varianQty">
+        </div>
+      </div>
+      <button class="btn btn-outline btn-small" onclick="tambahVarian()">+ Varian Lain</button>
+
+      <div class="total-line">
+        <span>Total Pesanan</span>
+        <span id="totalPesanan">Rp 0</span>
+      </div>
+      <button class="btn btn-add" style="margin-top:16px; width:100%;" onclick="simpanPesanan()">+ Simpan Pesanan</button>
+    </div>
+
+    <div class="card">
+      <h3>Riwayat Penjualan</h3>
+      <table>
+        <thead><tr><th>Pembeli</th><th>Detail Varian</th><th>Total</th><th></th></tr></thead>
+        <tbody id="tabelJual">
+          <tr class="empty-row"><td colspan="4">Belum ada penjualan yang dicatat.</td></tr>
+        </tbody>
+      </table>
+      <button class="btn btn-outline" style="margin-top:16px;" onclick="unduhPenjualan()">⬇ Unduh CSV</button>
+    </div>
+
+    <div class="card">
+      <h3>Rekap Penjualan</h3>
+      <div class="recap-grid">
+        <div class="recap-item"><div class="n" id="rTotalTerjual">0</div><div class="l">Total Serabi Terjual</div></div>
+        <div class="recap-item"><div class="n" id="rTotalPendapatan">Rp 0</div><div class="l">Total Pendapatan</div></div>
+      </div>
+    </div>
+
+    <div class="foot-total">
+      <div class="n" id="pendapatanSemua">Rp 0</div>
+      <div class="l">Pendapatan Semua Tanggal</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- state (in-memory, tidak disimpan permanen) ----------
+  let harga = 5000;
+  let belanjaItems = [];   // {nama, harga, jumlah, tanggal}
+  let penjualanItems = []; // {pembeli, varian:[{nama,qty}], total, tanggal}
+
+  const todayStr = new Date().toISOString().slice(0,10);
+  document.getElementById('tglBelanja').value = todayStr;
+  document.getElementById('tglJual').value = todayStr;
+
+  function rupiah(n){ return 'Rp ' + n.toLocaleString('id-ID'); }
+
+  // ---------- tabs ----------
+  function switchTab(name){
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    document.getElementById('panel-'+name).classList.add('active');
+  }
+
+  // ---------- belanja ----------
+  function tambahBahan(){
+    const nama = document.getElementById('namaBahan').value.trim();
+    const hargaB = parseFloat(document.getElementById('hargaBahan').value) || 0;
+    const jumlah = parseFloat(document.getElementById('jumlahBahan').value) || 0;
+    if(!nama || hargaB<=0 || jumlah<=0){ alert('Lengkapi nama, harga, dan jumlah bahan.'); return; }
+    belanjaItems.push({nama, harga:hargaB, jumlah, tanggal:document.getElementById('tglBelanja').value});
+    document.getElementById('namaBahan').value='';
+    document.getElementById('hargaBahan').value='';
+    document.getElementById('jumlahBahan').value='';
+    renderBelanja();
+  }
+
+  function hapusBahan(i){
+    belanjaItems.splice(i,1);
+    renderBelanja();
+  }
+
+  function renderBelanja(){
+    const body = document.getElementById('tabelBahan');
+    if(belanjaItems.length===0){
+      body.innerHTML = '<tr class="empty-row"><td colspan="5">Belum ada bahan yang dicatat.</td></tr>';
+    } else {
+      body.innerHTML = belanjaItems.map((it,i)=>`
+        <tr>
+          <td>${it.nama}</td>
+          <td>${rupiah(it.harga)}</td>
+          <td>${it.jumlah}</td>
+          <td>${rupiah(it.harga*it.jumlah)}</td>
+          <td><button class="btn btn-danger" onclick="hapusBahan(${i})">Hapus</button></td>
+        </tr>`).join('');
+    }
+    const totalUnit = belanjaItems.reduce((s,it)=>s+it.jumlah,0);
+    const totalBelanja = belanjaItems.reduce((s,it)=>s+it.harga*it.jumlah,0);
+    document.getElementById('rJumlahBahan').textContent = belanjaItems.length;
+    document.getElementById('rTotalUnit').textContent = totalUnit;
+    document.getElementById('rTotalBelanja').textContent = rupiah(totalBelanja);
+  }
+
+  function unduhBelanja(){
+    if(belanjaItems.length===0){ alert('Belum ada data belanja untuk diunduh.'); return; }
+    let csv = 'Tanggal,Bahan,Harga,Jumlah,Subtotal\n';
+    belanjaItems.forEach(it=>{
+      csv += `${it.tanggal},${it.nama},${it.harga},${it.jumlah},${it.harga*it.jumlah}\n`;
+    });
+    unduhCSV(csv, 'belanja-si-solo.csv');
+  }
+
+  // ---------- penjualan ----------
+  function ubahHarga(){
+    const baru = prompt('Masukkan harga baru per pcs:', harga);
+    if(baru !== null && !isNaN(baru) && parseFloat(baru) > 0){
+      harga = parseFloat(baru);
+      document.getElementById('hargaLabel').textContent = rupiah(harga);
+      hitungTotalPesanan();
+    }
+  }
+
+  function tambahVarian(){
+    const div = document.createElement('div');
+    div.className = 'varian-row';
+    div.innerHTML = `
+      <input type="text" placeholder="Varian (cth: Coklat)" class="varianNama">
+      <input type="number" placeholder="Qty" class="qty varianQty">
+      <button class="btn btn-danger" onclick="this.parentElement.remove(); hitungTotalPesanan();">✕</button>`;
+    document.getElementById('varianList').appendChild(div);
+    div.querySelectorAll('input').forEach(inp=> inp.addEventListener('input', hitungTotalPesanan));
+  }
+  document.querySelectorAll('.varianQty').forEach(inp=> inp.addEventListener('input', hitungTotalPesanan));
+  document.querySelectorAll('.varianNama').forEach(inp=> inp.addEventListener('input', hitungTotalPesanan));
+
+  function hitungTotalPesanan(){
+    let totalQty = 0;
+    document.querySelectorAll('.varianQty').forEach(inp=>{ totalQty += parseFloat(inp.value)||0; });
+    document.getElementById('totalPesanan').textContent = rupiah(totalQty*harga);
+    return totalQty;
+  }
+
+  function simpanPesanan(){
+    const pembeli = document.getElementById('namaPembeli').value.trim();
+    const varianRows = document.querySelectorAll('.varian-row');
+    let varian = [];
+    varianRows.forEach(row=>{
+      const nama = row.querySelector('.varianNama').value.trim();
+      const qty = parseFloat(row.querySelector('.varianQty').value) || 0;
+      if(nama && qty>0) varian.push({nama, qty});
+    });
+    if(!pembeli || varian.length===0){ alert('Lengkapi nama pembeli dan minimal satu varian.'); return; }
+    const totalQty = varian.reduce((s,v)=>s+v.qty,0);
+    const total = totalQty*harga;
+    penjualanItems.push({pembeli, varian, total, tanggal:document.getElementById('tglJual').value});
+
+    document.getElementById('namaPembeli').value='';
+    document.getElementById('varianList').innerHTML = `
+      <div class="varian-row">
+        <input type="text" placeholder="Varian (cth: Original)" class="varianNama">
+        <input type="number" placeholder="Qty" class="qty varianQty">
+      </div>`;
+    document.querySelectorAll('.varianQty, .varianNama').forEach(inp=> inp.addEventListener('input', hitungTotalPesanan));
+    hitungTotalPesanan();
+    renderPenjualan();
+  }
+
+  function hapusPesanan(i){
+    penjualanItems.splice(i,1);
+    renderPenjualan();
+  }
+
+  function renderPenjualan(){
+    const body = document.getElementById('tabelJual');
+    if(penjualanItems.length===0){
+      body.innerHTML = '<tr class="empty-row"><td colspan="4">Belum ada penjualan yang dicatat.</td></tr>';
+    } else {
+      body.innerHTML = penjualanItems.map((it,i)=>`
+        <tr>
+          <td>${it.pembeli}</td>
+          <td>${it.varian.map(v=>v.nama+' x'+v.qty).join(', ')}</td>
+          <td>${rupiah(it.total)}</td>
+          <td><button class="btn btn-danger" onclick="hapusPesanan(${i})">Hapus</button></td>
+        </tr>`).join('');
+    }
+    const totalTerjual = penjualanItems.reduce((s,it)=>s+it.varian.reduce((a,v)=>a+v.qty,0),0);
+    const totalPendapatan = penjualanItems.reduce((s,it)=>s+it.total,0);
+    document.getElementById('rTotalTerjual').textContent = totalTerjual;
+    document.getElementById('rTotalPendapatan').textContent = rupiah(totalPendapatan);
+    document.getElementById('pendapatanSemua').textContent = rupiah(totalPendapatan);
+  }
+
+  function unduhPenjualan(){
+    if(penjualanItems.length===0){ alert('Belum ada data penjualan untuk diunduh.'); return; }
+    let csv = 'Tanggal,Pembeli,Detail Varian,Total\n';
+    penjualanItems.forEach(it=>{
+      const detail = it.varian.map(v=>v.nama+' x'+v.qty).join(' | ');
+      csv += `${it.tanggal},${it.pembeli},"${detail}",${it.total}\n`;
+    });
+    unduhCSV(csv, 'penjualan-si-solo.csv');
+  }
+
+  function unduhCSV(csv, filename){
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  renderBelanja();
+  renderPenjualan();
+</script>
+</body>
+</html>
